@@ -1,19 +1,19 @@
+# -*- encoding: utf-8 -*-
+
 {
-    'name': 'FEL Mega Print',
-    'version': '17.0.0.0.1',
-    'category': 'Account',
-    'description': """ Integra Odoo y factura electrónica con el CERTIFICADOR Mega Print, Genera DTO locales y DTO locales en contingencia """,
-    'author': 'Eduardo Cortez Paz, Allan Ramirez',
-    'website': 'https://www.exeticsoluciona.com',
-    'depends': ['account', 'l10n_gt_extra', 'account_accountant'],
+    'name': 'FEL Megaprint',
+    'version': '17.0.0.0.0',
+    'category': 'Custom',
+    'description': """ Integración con factura electrónica de Megaprint """,
+    'author': 'Rodrigo Fernandez',
+    'mainteiner': 'INTEGRALL'
+    'website': 'https://integrall.solutions/',
+    'depends': ['fel_gt'],
+    "license": "OPL-1",
     'data': [
         'views/account_view.xml',
-        'views/partner_view.xml',
-        'views/contigencia.xml',
-        'report/reports.xml',
-        'report/report_invoice_rsm.xml',
     ],
-    'license': 'OPL-1',
     'demo': [],
     'installable': True
 }
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
