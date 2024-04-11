@@ -6,7 +6,7 @@
     'category': 'Custom',
     'description': """ Integración con factura electrónica de Megaprint """,
     'author': 'Rodrigo Fernandez',
-    'mainteiner': 'INTEGRALL'
+    'mainteiner': 'INTEGRALL',
     'website': 'https://integrall.solutions/',
     'depends': ['fel_gt'],
     "license": "OPL-1",
