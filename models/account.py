@@ -23,16 +23,10 @@ class AccountMove(models.Model):
     def _post(self, soft=True):
         if self.certificar():
             return super(AccountMove, self)._post(soft)
-        
-    def post(self):
-        if self.certificar():
-            return super(AccountMove, self).post()
 
     def certificar(self):
         for factura in self:
-            print("certificaaaaaaaar")
             if factura.requiere_certificacion():
-                print("cert!")
                 self.ensure_one()
                 
                 if factura.error_pre_validacion():
@@ -61,67 +55,59 @@ class AccountMove(models.Model):
                     token = resultadoXML.xpath("//token")[0].text
                     uuid_factura = str(uuid.uuid5(uuid.NAMESPACE_OID, str(factura.id))).upper()
 
-                    # headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
-                    # data = '<?xml version="1.0" encoding="UTF-8"?><VerificaDocumentoRequest id="{}"></VerificaDocumentoRequest>'.format(uuid_factura)
-                    # r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/verificarDocumento', data=data.encode('utf-8'), headers=headers)
-                    # resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
-
-                    headers = {"Content-Type": "application/xml", "authorization": "Bearer " + token}
-                    data = '<?xml version="1.0" encoding="UTF-8"?><FirmaDocumentoRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></FirmaDocumentoRequest>'.format(
-                        uuid_factura, xml_sin_firma)
-                    r = requests.post('https://' + request_url_firma + 'api.soluciones-mega.com/api/solicitaFirma',
-                                      data=data.encode('utf-8'), headers=headers)
+                    headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
+                    data = '<?xml version="1.0" encoding="UTF-8"?><VerificaDocumentoRequest id="{}"></VerificaDocumentoRequest>'.format(uuid_factura)
+                    r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/verificarDocumento', data=data.encode('utf-8'), headers=headers)
+                    logging.warning(data)
+                    logging.warning(r.text)
                     resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
 
-                    # if len(resultadoXML.xpath("//listado_documentos")) == 0:
-                    #     headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
-                    #     data = '<?xml version="1.0" encoding="UTF-8"?><FirmaDocumentoRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></FirmaDocumentoRequest>'.format(uuid_factura, xml_sin_firma)
-                    #     r = requests.post('https://'+request_url_firma+'api.soluciones-mega.com/api/solicitaFirma', data=data.encode('utf-8'), headers=headers)
-                    #     resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
-
-                    if len(resultadoXML.xpath("//xml_dte")) > 0:
-                        xml_con_firma = resultadoXML.xpath("//xml_dte")[0].text
+                    if len(resultadoXML.xpath("//listado_documentos")) == 0:
                         headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
-                        data = '<?xml version="1.0" encoding="UTF-8"?><RegistraDocumentoXMLRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></RegistraDocumentoXMLRequest>'.format(uuid_factura, xml_con_firma)
-                        logging.warn(data)
-                        r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/registrarDocumentoXML', data=data.encode('utf-8'), headers=headers)
+                        data = '<?xml version="1.0" encoding="UTF-8"?><FirmaDocumentoRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></FirmaDocumentoRequest>'.format(uuid_factura, xml_sin_firma)
+                        r = requests.post('https://'+request_url_firma+'api.soluciones-mega.com/api/solicitaFirma', data=data.encode('utf-8'), headers=headers)
                         resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
 
-                        if len(resultadoXML.xpath("//listado_errores")) == 0:
-                            xml_certificado = resultadoXML.xpath("//xml_dte")[0].text
-                            xml_certificado_root = etree.XML(bytes(xml_certificado, encoding='utf-8'))
-                            numero_autorizacion = xml_certificado_root.find(".//{http://www.sat.gob.gt/dte/fel/0.2.0}NumeroAutorizacion")
-
-                            factura.firma_fel = numero_autorizacion.text
-                            factura.serie_fel = numero_autorizacion.get("Serie")
-                            factura.numero_fel = numero_autorizacion.get("Numero")
-                            factura.documento_xml_fel = xmls_base64
-                            factura.resultado_xml_fel = base64.b64encode(bytes(xml_certificado, encoding='utf-8'))
-                            factura.certificador_fel = "megaprint"
+                        if len(resultadoXML.xpath("//xml_dte")) > 0:
+                            xml_con_firma = resultadoXML.xpath("//xml_dte")[0].text
 
                             headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
-                            data = '<?xml version="1.0" encoding="UTF-8"?><RetornaPDFRequest><uuid>{}</uuid></RetornaPDFRequest>'.format(factura.firma_fel)
-                            r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/retornarPDF', data=data, headers=headers)
+                            data = '<?xml version="1.0" encoding="UTF-8"?><RegistraDocumentoXMLRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></RegistraDocumentoXMLRequest>'.format(uuid_factura, xml_con_firma)
+                            logging.warn(data)
+                            r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/registrarDocumentoXML', data=data.encode('utf-8'), headers=headers)
                             resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
+
                             if len(resultadoXML.xpath("//listado_errores")) == 0:
-                                pdf = resultadoXML.xpath("//pdf")[0].text
-                                factura.pdf_fel = pdf
+                                xml_certificado = resultadoXML.xpath("//xml_dte")[0].text
+                                xml_certificado_root = etree.XML(bytes(xml_certificado, encoding='utf-8'))
+                                numero_autorizacion = xml_certificado_root.find(".//{http://www.sat.gob.gt/dte/fel/0.2.0}NumeroAutorizacion")
+
+                                factura.firma_fel = numero_autorizacion.text
+                                factura.serie_fel = numero_autorizacion.get("Serie")
+                                factura.numero_fel = numero_autorizacion.get("Numero")
+                                factura.documento_xml_fel = xmls_base64
+                                factura.resultado_xml_fel = base64.b64encode(bytes(xml_certificado, encoding='utf-8'))
+                                factura.certificador_fel = "megaprint"
+
+                                headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
+                                data = '<?xml version="1.0" encoding="UTF-8"?><RetornaPDFRequest><uuid>{}</uuid></RetornaPDFRequest>'.format(factura.firma_fel)
+                                r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/retornarPDF', data=data, headers=headers)
+                                resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
+                                if len(resultadoXML.xpath("//listado_errores")) == 0:
+                                    pdf = resultadoXML.xpath("//pdf")[0].text
+                                    factura.pdf_fel = pdf
+                                    
+                            else:
+                                factura.error_certificador(r.text)
 
                         else:
                             factura.error_certificador(r.text)
-                            return False
-
-                        # else:
-                        #     factura.error_certificador(r.text)
-                        #     return False
                             
                     else:
                         factura.error_certificador("La factura ya fue validada, por lo que no puede ser validada nuevamente: ".format(r.text))
-                        return False
                         
                 else:
                     factura.error_certificador(r.text)
-                    return False
 
         return True
     
@@ -172,11 +158,6 @@ class AccountMove(models.Model):
                     raise UserError(r.text)
                     
         return result
-                
-class AccountJournal(models.Model):
-    _inherit = "account.journal"
-
-    generar_fel = fields.Boolean('Generar FEL',)
 
 class ResCompany(models.Model):
     _inherit = "res.company"
@@ -184,4 +165,3 @@ class ResCompany(models.Model):
     usuario_fel = fields.Char('Usuario FEL')
     clave_fel = fields.Char('Clave FEL')
     pruebas_fel = fields.Boolean('Modo de Pruebas FEL')
-    
