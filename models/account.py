@@ -85,6 +85,7 @@ class AccountMove(models.Model):
                                 factura.firma_fel = numero_autorizacion.text
                                 factura.serie_fel = numero_autorizacion.get("Serie")
                                 factura.numero_fel = numero_autorizacion.get("Numero")
+                                factura.ref = numero_autorizacion.get("Serie") + '-' + numero_autorizacion.get("Numero")
                                 factura.documento_xml_fel = xmls_base64
                                 factura.resultado_xml_fel = base64.b64encode(bytes(xml_certificado, encoding='utf-8'))
                                 factura.certificador_fel = "megaprint"
