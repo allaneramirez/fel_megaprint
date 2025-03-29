@@ -8,9 +8,6 @@
             <field name="inherit_id" ref="fel_gt.view_move_form"/>
             <field name="arch" type="xml">
                 <data>
-                    <button name="button_draft" position="after">
-                        <button name="certificar" id="certificar" string="Certificar FEL" type="object" invisible="firma_fel != False or move_type == 'entry'"/>
-                    </button>
                     <field name="resultado_xml_fel" position="after">
                         <field name="name_pdf_fel" invisible="1"/>
                         <field name="pdf_fel" filename="name_pdf_fel"/>

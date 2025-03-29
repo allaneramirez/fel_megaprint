@@ -8,6 +8,7 @@ from datetime import datetime
 import base64
 from lxml import etree
 import requests
+import time
 
 import html
 import uuid
@@ -97,6 +98,8 @@ class AccountMove(models.Model):
                                 if len(resultadoXML.xpath("//listado_errores")) == 0:
                                     pdf = resultadoXML.xpath("//pdf")[0].text
                                     factura.pdf_fel = pdf
+                                    pdfname = '{}.pdf'.format(factura.ref)
+                                    factura.name_pdf_fel = pdfname
                                     
                             else:
                                 factura.error_certificador(r.text)
@@ -136,7 +139,6 @@ class AccountMove(models.Model):
                 if len(resultadoXML.xpath("//token")) > 0:
                     token = resultadoXML.xpath("//token")[0].text
                     uuid_factura = str(uuid.uuid5(uuid.NAMESPACE_OID, str(factura.id))).upper()
-
                     headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
                     data = '<?xml version="1.0" encoding="UTF-8"?><FirmaDocumentoRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></FirmaDocumentoRequest>'.format(uuid_factura, xml_sin_firma)
                     r = requests.post('https://'+request_url_firma+'api.soluciones-mega.com/api/solicitaFirma', data=data.encode('utf-8'), headers=headers)
@@ -144,12 +146,24 @@ class AccountMove(models.Model):
                     resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
                     if len(resultadoXML.xpath("//xml_dte")) > 0:
                         xml_con_firma = html.unescape(resultadoXML.xpath("//xml_dte")[0].text)
-
                         headers = { "Content-Type": "application/xml", "authorization": "Bearer "+token }
                         data = '<?xml version="1.0" encoding="UTF-8"?><AnulaDocumentoXMLRequest id="{}"><xml_dte><![CDATA[{}]]></xml_dte></AnulaDocumentoXMLRequest>'.format(uuid_factura, xml_con_firma)
                         logging.warn(data)
                         r = requests.post('https://'+request_url+'.ifacere-fel.com/'+request_path+'api/anularDocumentoXML', data=data.encode('utf-8'), headers=headers)
                         resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
+                        # GET PDF
+                        if len(resultadoXML.xpath("//listado_errores")) == 0:
+                            headers = {"Content-Type": "application/xml", "authorization": "Bearer " + token}
+                            data = '<?xml version="1.0" encoding="UTF-8"?><RetornaPDFRequest><uuid>{}</uuid></RetornaPDFRequest>'.format(
+                                factura.firma_fel)
+                            time.sleep(45)
+                            r = requests.post(
+                                'https://' + request_url + '.ifacere-fel.com/' + request_path + 'api/retornarPDF',
+                                data=data, headers=headers)
+                            resultadoXML = etree.XML(bytes(r.text, encoding='utf-8'))
+                            if len(resultadoXML.xpath("//listado_errores")) == 0:
+                                pdf = resultadoXML.xpath("//pdf")[0].text
+                                factura.pdf_fel = pdf
 
                         if len(resultadoXML.xpath("//listado_errores")) > 0:
                             raise UserError(r.text)
