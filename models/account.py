@@ -102,16 +102,33 @@ class AccountMove(models.Model):
                                     factura.name_pdf_fel = pdfname
                                     
                             else:
-                                factura.error_certificador(r.text)
+                                # factura.error_certificador(r.text)
+                                factura.documento_xml_fel = xmls_base64
+                                factura.resultado_xml_fel = base64.b64encode(bytes(r.text, encoding='utf-8'))
+                                factura.message_post(
+                                    body='<p>No se publicó la factura por error del certificadorRR FEL:</p> <p><strong>' + r.text + '</strong></p>')
+                                return False
 
                         else:
-                            factura.error_certificador(r.text)
+                            factura.documento_xml_fel = xmls_base64
+                            factura.resultado_xml_fel = base64.b64encode(bytes(r.text, encoding='utf-8'))
+                            factura.message_post(
+                                body='<p>No se publicó la factura por error del certificadorRR FEL:</p> <p><strong>' + r.text + '</strong></p>')
+                            return False
                             
                     else:
-                        factura.error_certificador(r.text)
+                        factura.documento_xml_fel = xmls_base64
+                        factura.resultado_xml_fel = base64.b64encode(bytes(r.text, encoding='utf-8'))
+                        factura.message_post(
+                            body='<p>No se publicó la factura por error del certificadorRR FEL:</p> <p><strong>' + r.text + '</strong></p>')
+                        return False
                         
                 else:
-                    factura.error_certificador(r.text)
+                    factura.documento_xml_fel = xmls_base64
+                    factura.resultado_xml_fel = base64.b64encode(bytes(r.text, encoding='utf-8'))
+                    factura.message_post(
+                        body='<p>No se publicó la factura por error del certificadorRR FEL:</p> <p><strong>' + r.text + '</strong></p>')
+                    return False
 
         return True
     
