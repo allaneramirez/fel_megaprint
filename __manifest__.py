@@ -2,18 +2,17 @@
 
 {
     'name': 'FEL Megaprint',
-    'version': '17.0.0.0.0',
+    'version': '1.6',
     'category': 'Custom',
     'description': """ Integración con factura electrónica de Megaprint """,
-    'author': 'Rodrigo Fernandez',
-    'mainteiner': 'INTEGRALL',
-    'website': 'https://integrall.solutions/',
+    'author': 'aquíH',
+    'website': 'http://www.aquih.com/',
     'depends': ['fel_gt'],
-    "license": "OPL-1",
     'data': [
-        'views/account_view.xml',
+        'views/account_views.xml',
     ],
     'demo': [],
-    'installable': True
+    'installable': True,
+    'license': 'Other OSI approved licence',
 }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
